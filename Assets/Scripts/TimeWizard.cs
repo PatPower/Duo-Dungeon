@@ -3,16 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Completed
 {
-    public class PlayerController : MovingObject
+    public class TimeWizard : MovingObject
     {
         Rigidbody2D rigid;
 
         public string horizontalControl = "P1RightHorizontal";
         public string verticalControl = "P1RightVertical";
+        public string actionControl = "leftBumper";
         private float xInput, yInput, lastX, lastY;
         private static bool playerExists;
-
-
+        private List<string> arrayOfFreezableTags = new List<string> { "button", "spike", "Player" };
 
         //Start overrides the Start function of MovingObject
         protected override void Start()
@@ -31,12 +31,16 @@ namespace Completed
             int vertical = 0;		//Used to store the vertical move direction.
             float joyStickHorizontal = 0;     //Used to store the horizontal move direction.
             float joyStickVertical = 0;       //Used to store the vertical move direction.
+            bool action = false;
 
             //Get input from the input manager, round it to an integer and store in horizontal to set x axis move direction
             joyStickHorizontal = Input.GetAxisRaw(horizontalControl);
 
             //Get input from the input manager, round it to an integer and store in vertical to set y axis move direction
             joyStickVertical = Input.GetAxisRaw(verticalControl);
+
+            // If 1, then action button is pressed
+            action = Input.GetButtonDown(actionControl);
 
             if (joyStickHorizontal < -0.15)
             {
@@ -71,7 +75,8 @@ namespace Completed
                     if (joyStickHorizontal > joyStickVertical)
                     {
                         vertical = 0;
-                    } else
+                    }
+                    else
                     {
                         horizontal = 0;
                     }
@@ -80,6 +85,11 @@ namespace Completed
                 //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
                 //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
                 AttemptMove<Wall>(horizontal, vertical);
+            }
+
+            if (action)
+            {
+                Ability();
             }
         }
 
@@ -110,6 +120,17 @@ namespace Completed
         {
 
         }
-    }
 
+        protected override void Ability()
+        {
+            Debug.Log("Ability");
+            Collider2D[] list = Physics2D.OverlapAreaAll(new Vector2(rigid.transform.position.x - 1, rigid.transform.position.y + 1), new Vector2(rigid.transform.position.x + 1, rigid.transform.position.y - 1));
+            foreach (Collider2D col2d in list)
+            {
+                if (arrayOfFreezableTags.Contains(col2d.tag)) {
+                    Debug.Log(col2d.ToString());
+                }
+            }
+        }
+    }
 }

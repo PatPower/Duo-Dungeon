@@ -41,13 +41,13 @@ namespace Completed
             Vector2 end = start + new Vector2(xDir, yDir);
 
             //Disable the boxCollider so that linecast doesn't hit this object's own collider.
-            boxCollider.enabled = false;
+            //boxCollider.enabled = false;
 
             //Cast a line from start point to end point checking collision on blockingLayer.
             hit = Physics2D.Linecast(start, end, blockingLayer);
 
             //Re-enable boxCollider after linecast
-            boxCollider.enabled = true;
+            //boxCollider.enabled = true;
 
             //Check if nothing was hit and that the object isn't already moving.
             if (hit.transform == null && !isMoving)
@@ -58,7 +58,6 @@ namespace Completed
                 //Return true to say that Move was successful
                 return true;
             }
-            Debug.Log(hit.ToString());
             //If something was hit, return false, Move was unsuccesful.
             return false;
         }
@@ -129,5 +128,9 @@ namespace Completed
         //OnCantMove will be overriden by functions in the inheriting classes.
         protected abstract void OnCantMove<T>(T component)
             where T : Component;
+
+        //The abstract modifier indicates that the thing being modified has a missing or incomplete implementation.
+        //Ability will be overriden by functions in the inheriting classes.
+        protected abstract void Ability();
     }
 }
