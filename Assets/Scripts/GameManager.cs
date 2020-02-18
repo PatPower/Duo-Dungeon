@@ -15,6 +15,7 @@ namespace Completed
         [HideInInspector] public bool playersTurn = true;       //Boolean to check if it's players turn, hidden in inspector but public.
 
 
+
         //Awake is always called before any Start functions
         void Awake()
         {
