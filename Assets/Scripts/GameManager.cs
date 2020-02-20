@@ -86,13 +86,8 @@ namespace Completed
         //Coroutine to move enemies in sequence.
         IEnumerator Clock()
         {
-
-
             //Wait for turnDelay seconds, defaults to .1 (100 ms).
             yield return new WaitForSeconds(turnDelay);
-
-
-
 
             //Once Enemies are done moving, set playersTurn to true so player can move.
             playersTurn = true;

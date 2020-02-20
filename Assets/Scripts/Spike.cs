@@ -7,32 +7,49 @@ namespace Completed
     {
         List<GameObject> onSpike = new List<GameObject>();
         public Animator anim;
+        public Sprite pressed;
+        public int damage = 10;
+        private Sprite defaultSprite;
+        private bool spikeUp = false;
 
-        private void Start()
+
+
+        protected override void Start()
         {
+            base.Start();
             anim = GetComponent<Animator>();
+            defaultSprite = spriteRend.sprite;
         }
 
-        public override void Activate()
+        public override void Activate(GameObject caller)
         {
-            // Print the entire list to the console.
-            foreach (GameObject gObject in onSpike)
+            // saves the game object caller 
+            base.Activate(caller);
+            if (frozen)
             {
-                print(gObject.name);
+                return;
             }
+            spikeUp = true;
+            StartCoroutine(DamagePlayers());
+
             this.gameObject.layer = LayerMask.NameToLayer("BlockingLayer");
-            anim.SetBool("SpikeUp", true);
+            spriteRend.sprite = pressed;
+            isActive = true;
+            // Saves the caller game object
         }
 
         public override void Deactivate()
         {
-            // Print the entire list to the console.
-            foreach (GameObject gObject in onSpike)
+            if (frozen)
             {
-                print(gObject.name);
+                return;
             }
+
+            spikeUp = false;
+
             this.gameObject.layer = LayerMask.NameToLayer("Default");
-            anim.SetBool("SpikeUp", false);
+            spriteRend.sprite = defaultSprite;
+            isActive = false;
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
@@ -49,5 +66,21 @@ namespace Completed
                 onSpike.Remove(collision.gameObject);
             }
         }
+
+        IEnumerator DamagePlayers()
+        {
+            while (spikeUp)
+            {
+                // Print the entire list to the console.
+                foreach (GameObject gObject in onSpike)
+                {
+                    MovingObject gObjectScript = gObject.GetComponent<MovingObject>();
+                    gObjectScript.takeDamage(damage);
+                }
+                yield return new WaitForSeconds(0.8f);
+            }
+        }
+
+
     }
 }
