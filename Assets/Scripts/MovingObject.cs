@@ -8,6 +8,7 @@ namespace Completed
     {
         public float moveTime = 0.1f;           //Time it will take object to move, in seconds.
         public LayerMask blockingLayer;         //Layer on which collision will be checked.
+        public LayerMask dashableLayer;         //layer that the dasher can dash thru and no one else can
         public int startingHp = 10;
         private bool isFrozen = false;
 
@@ -57,8 +58,8 @@ namespace Completed
             //Disable the boxCollider so that linecast doesn't hit this object's own collider.
             //boxCollider.enabled = false;
 
-            //Cast a line from start point to end point checking collision on blockingLayer.
-            hit = Physics2D.Linecast(start, end, blockingLayer);
+            //Cast a line from start point to end point checking collision on blockingLayer and dashableLayer.
+            hit = Physics2D.Linecast(start, end, blockingLayer | dashableLayer);
 
             //Re-enable boxCollider after linecast
             //boxCollider.enabled = true;
