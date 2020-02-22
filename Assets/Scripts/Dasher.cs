@@ -3,14 +3,16 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Completed
 {
-    public class Grabber : MovingObject
+    public class Dasher : MovingObject
     {
         Rigidbody2D rigid;
 
         public string horizontalControl = "P1RightHorizontal";
         public string verticalControl = "P1RightVertical";
         public string actionControl = "leftBumper";
+        public float dashMoveTime;
         private float xInput, yInput, lastX, lastY;
+        private bool isDashing = false;
 
         //Start overrides the Start function of MovingObject
         protected override void Start()
@@ -80,15 +82,16 @@ namespace Completed
                     }
                 }
 
-                //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
-                //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
-                AttemptMove<Wall>(horizontal, vertical);
+                if (action)
+                {
+                    Ability(horizontal, vertical);
+                }
+                else
+                {
+                    AttemptMove<Wall>(horizontal, vertical);
+                }
             }
 
-            if (action)
-            {
-                Ability();
-            }
         }
 
         //AttemptMove overrides the AttemptMove function in the base class MovingObject
@@ -103,20 +106,45 @@ namespace Completed
                 return true;
             }
 
-            //Hit allows us to reference the result of the Linecast done in Move.
-            RaycastHit2D hit;
-
-            //If Move returns true, meaning Player was able to move into an empty space.
-            if (Move(xDir, yDir, out hit))
-            {
-
-            }
-
-
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
             GameManager.instance.playersTurn = false;
             return false;
         }
+
+        //pretty much copied these entire methods over and made some tweaks, sorry
+        //could be cleaned up later if this becomes a big Thing
+        protected override bool Move(int xDir, int yDir, out RaycastHit2D hit)
+        {
+            Vector2 start = transform.position;
+            Vector2 end = start + new Vector2(xDir, yDir);
+            LayerMask layer = isDashing ? blockingLayer : (LayerMask)(blockingLayer | dashableLayer);
+            hit = Physics2D.Linecast(start, end, layer);
+            // TODO: check if 2 tiles contain dashableLayer
+            if (hit.transform == null && !isMoving)
+            {
+                StartCoroutine(SmoothMovement(end));
+                return true;
+            }
+            return false;
+        }
+
+        protected override IEnumerator SmoothMovement(Vector3 end)
+        {
+            isMoving = true;
+            float invMoveT = isDashing ? 1f / dashMoveTime : 1f / moveTime;
+            float sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+            while (sqrRemainingDistance > float.Epsilon)
+            {
+                Vector3 newPostion = Vector3.MoveTowards(rb2D.position, end, invMoveT * Time.deltaTime);
+                rb2D.MovePosition(newPostion);
+                sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+                yield return null;
+            }
+            rb2D.MovePosition(end);
+            isMoving = false;
+            isDashing = false;
+        }
+
         //OnCantMove overrides the abstract function OnCantMove in MovingObject.
         //It takes a generic parameter T which in the case of Player is a Wall which the player can attack and destroy.
         protected override void OnCantMove<T>(T component)
@@ -124,9 +152,18 @@ namespace Completed
 
         }
 
-        protected override void Ability(int horizontal = 0, int vertical = 0)
+        protected override void Ability(int horizontal, int vertical)
         {
-
+            Debug.Log("dashing?");
+            if (!isDashing)
+            {
+                Debug.Log("dashing");
+                isDashing = true;
+                if (!base.AttemptMove<Wall>(horizontal*2, vertical*2))
+                {
+                    AttemptMove<Wall>(horizontal, vertical);
+                }
+            }
         }
     }
 }

@@ -13,9 +13,9 @@ namespace Completed
         private bool isFrozen = false;
 
         private BoxCollider2D boxCollider;      //The BoxCollider2D component attached to this object.
-        private Rigidbody2D rb2D;               //The Rigidbody2D component attached to this object.
+        protected Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
         private float inverseMoveTime;          //Used to make movement more efficient.
-        private bool isMoving;                  //Is the object currently moving.
+        protected bool isMoving;                //Is the object currently moving.
         private int hp;
         private SpriteRenderer spriteRend;
         private Material material;
@@ -46,8 +46,10 @@ namespace Completed
 
 
         //Move returns true if it is able to move and false if not. 
+        //If it is able, it will move the object
+        //(an object is able to move if it is not already moving and )
         //Move takes parameters for x direction, y direction and a RaycastHit2D to check collision.
-        protected bool Move(int xDir, int yDir, out RaycastHit2D hit)
+        protected virtual bool Move(int xDir, int yDir, out RaycastHit2D hit)
         {
             //Store start position to move from, based on objects current transform position.
             Vector2 start = transform.position;
@@ -79,7 +81,7 @@ namespace Completed
 
 
         //Co-routine for moving units from one space to next, takes a parameter end to specify where to move to.
-        protected IEnumerator SmoothMovement(Vector3 end)
+        protected virtual IEnumerator SmoothMovement(Vector3 end)
         {
             //The object is now moving.
             isMoving = true;
@@ -154,7 +156,7 @@ namespace Completed
 
         //The abstract modifier indicates that the thing being modified has a missing or incomplete implementation.
         //Ability will be overriden by functions in the inheriting classes.
-        protected abstract void Ability();
+        protected abstract void Ability(int horizontal, int vertical);
 
         /***
          * Everytime this function is called, the player will take the amount of damage in the dmg argument
