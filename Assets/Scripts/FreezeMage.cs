@@ -35,14 +35,17 @@ namespace Completed
             bool action = false;
 
             //Get input from the input manager, round it to an integer and store in horizontal to set x axis move direction
+            //Ranges from -1 to 1
             joyStickHorizontal = Input.GetAxisRaw(horizontalControl);
 
             //Get input from the input manager, round it to an integer and store in vertical to set y axis move direction
+            //Ranges from -1 to 1
             joyStickVertical = Input.GetAxisRaw(verticalControl);
 
             // If 1, then action button is pressed
             action = Input.GetButtonDown(actionControl);
 
+            // Checks which direction the joysticks are in
             if (joyStickHorizontal < -0.15)
             {
                 horizontal = -1;
@@ -83,11 +86,11 @@ namespace Completed
                     }
                 }
 
-                //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
+                //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one
                 //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
                 AttemptMove<Wall>(horizontal, vertical);
             }
-
+            // Checks if the action button is pressed
             if (action)
             {
                 Ability();
@@ -120,8 +123,7 @@ namespace Completed
             GameManager.instance.playersTurn = false;
             return false;
         }
-        //OnCantMove overrides the abstract function OnCantMove in MovingObject.
-        //It takes a generic parameter T which in the case of Player is a Wall which the player can attack and destroy.
+        //Ignore the function
         protected override void OnCantMove<T>(T component)
         {
 
@@ -131,20 +133,21 @@ namespace Completed
         {
             if (!freezeAbilityOn)
             {
-                
-                Debug.Log("Ability");
+                // This gets a list of all the objects that has the Collider2D component attached to it (players, spikes, buttons, unpassible tiles, etc...)
                 Collider2D[] list = Physics2D.OverlapAreaAll(new Vector2(rigid.transform.position.x - 1, rigid.transform.position.y + 1), new Vector2(rigid.transform.position.x + 1, rigid.transform.position.y - 1));
                 // Loops through all of the collidable objects around the time wizard
                 foreach (Collider2D col2d in list)
                 {
-                    // If the object is in the list of freezable objects
+                    // If the object is in the list of freezable objects that was defined near the top
                     if (arrayOfFreezableTags.Contains(col2d.tag))
                     {
                         // Gets the game object
                         GameObject gameObj = col2d.gameObject;
+                        // Adds the game object to the current list of frozen game objects that the player froze
                         frozenObjects.Add(gameObj);
+                        
                         ActionObject actionObjScript;
-                        // Checks which object is being frozen
+                        // Checks which object is being frozen by checking the tag
                         switch (col2d.tag)
                         {
                             case "spike":
@@ -183,10 +186,11 @@ namespace Completed
                     // error sound
                 }
             }
-            else
+            else // Handles the unfreezing of objects
             {
+
                 freezeAbilityOn = false;
-                // Unfreeze
+                
                 foreach (GameObject gameObj in frozenObjects)
                 {
                     ActionObject actionObjScript;
