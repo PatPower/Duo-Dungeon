@@ -114,8 +114,19 @@ namespace Completed
         {
             Vector2 start = transform.position;
             Vector2 end = start + new Vector2(xDir, yDir);
-            LayerMask layer = isDashing ? blockingLayer : (LayerMask)(blockingLayer | dashableLayer);
-            hit = Physics2D.Linecast(start, end, layer);
+            LayerMask layers = blockingLayer;
+            if (isDashing)
+            {
+                layers |= yDir > 0 ? (LayerMask) 0 : dashableLayerN;  // if going north
+                layers |= yDir < 0 ? (LayerMask) 0 : dashableLayerS;  // if going south
+                layers |= xDir < 0 ? (LayerMask) 0 : dashableLayerW;  // if going west
+                layers |= xDir > 0 ? (LayerMask) 0 : dashableLayerE;  // if going east
+            }
+            else
+            {
+                layers |= dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+            }
+            hit = Physics2D.Linecast(start, end, layers);
             if (hit.transform == null && !isMoving)
             {
                 // if dashing, check that there's nothing at the destination tile
@@ -131,19 +142,20 @@ namespace Completed
             return false;
         }
 
+        // code mostly copied from MovingObject
         protected override IEnumerator SmoothMovement(Vector3 end)
         {
             isMoving = true;
-            float invMoveT = isDashing ? 1f / dashMoveTime : 1f / moveTime;
+            float invMoveT = isDashing ? 1f / dashMoveTime : 1f / moveTime;  // use different speed for dashing
             float sqrRemainingDistance = (transform.position - end).sqrMagnitude;
             while (sqrRemainingDistance > float.Epsilon)
             {
-                Vector3 newPostion = Vector3.MoveTowards(rb2D.position, end, invMoveT * Time.deltaTime);
-                rb2D.MovePosition(newPostion);
+                Vector3 newPostion = Vector3.MoveTowards(rigid.position, end, invMoveT * Time.deltaTime);
+                rigid.MovePosition(newPostion);
                 sqrRemainingDistance = (transform.position - end).sqrMagnitude;
                 yield return null;
             }
-            rb2D.MovePosition(end);
+            rigid.MovePosition(end);
             isMoving = false;
             isDashing = false;
         }
@@ -159,25 +171,26 @@ namespace Completed
         {
             if (isFrozen)
             {
-                Debug.Log("dash frozen");
+                //Debug.Log("dash frozen");
                 return;
             }
-            //Debug.Log("dashing?");
+            
+            RaycastHit2D dummy; // Move() needs it
+
             // don't dash if already dashing
-            RaycastHit2D dummy;
             if (!isDashing)
             {
-                Debug.Log("================================");
-                Debug.Log("dashing");
+                //Debug.Log("================================");
+                //Debug.Log("dashing");
                 isDashing = true;
                 
                 if (!Move(horizontal*2, vertical*2, out dummy))
                 {
-                    Debug.Log("1 tile dash");
+                    //Debug.Log("1 tile dash");
                     if (!Move(horizontal, vertical, out dummy))
                     {
                         isDashing = false;
-                        Debug.Log("dash utterly failed");
+                        //Debug.Log("dash utterly failed");
                     }
                 }
             }

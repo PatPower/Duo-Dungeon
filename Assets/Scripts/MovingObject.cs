@@ -8,12 +8,16 @@ namespace Completed
     {
         public float moveTime = 0.1f;           //Time it will take object to move, in seconds.
         public LayerMask blockingLayer;         //Layer on which collision will be checked.
-        public LayerMask dashableLayer;         //layer that the dasher can dash thru and no one else can
+        public LayerMask dashableLayer;         // layer that the dasher can dash thru but no one else can pass
+        public LayerMask dashableLayerN;        // dasher can dash north through these
+        public LayerMask dashableLayerS;        // dasher can dash south through these
+        public LayerMask dashableLayerW;        // dasher can dash west through these
+        public LayerMask dashableLayerE;        // dasher can dash east through these
         public int startingHp = 10;
         protected bool isFrozen = false;
 
         private BoxCollider2D boxCollider;      //The BoxCollider2D component attached to this object.
-        protected Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
+        private Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
         private float inverseMoveTime;          //Used to make movement more efficient.
         protected bool isMoving;                //Is the object currently moving.
         private int hp;
@@ -42,6 +46,7 @@ namespace Completed
             material = GetComponent<SpriteRenderer>().material;
 
             child = transform.GetChild(0).gameObject;
+
         }
 
 
@@ -60,8 +65,9 @@ namespace Completed
             //Disable the boxCollider so that linecast doesn't hit this object's own collider.
             //boxCollider.enabled = false;
 
-            //Cast a line from start point to end point checking collision on blockingLayer and dashableLayer.
-            hit = Physics2D.Linecast(start, end, blockingLayer | dashableLayer);
+            //Cast a line from start point to end point checking collision on blockingLayer and all the dashableLayers.
+            LayerMask layers = blockingLayer | dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+            hit = Physics2D.Linecast(start, end, layers);
 
             //Re-enable boxCollider after linecast
             //boxCollider.enabled = true;
