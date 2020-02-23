@@ -129,7 +129,7 @@ namespace Completed
 
         }
 
-        protected override void Ability()
+        protected override void Ability(int horizontal = 0, int vertical = 0)
         {
             if (!freezeAbilityOn)
             {

@@ -8,13 +8,18 @@ namespace Completed
     {
         public float moveTime = 0.1f;           //Time it will take object to move, in seconds.
         public LayerMask blockingLayer;         //Layer on which collision will be checked.
+        public LayerMask dashableLayer;         // layer that the dasher can dash thru but no one else can pass
+        public LayerMask dashableLayerN;        // dasher can dash north through these
+        public LayerMask dashableLayerS;        // dasher can dash south through these
+        public LayerMask dashableLayerW;        // dasher can dash west through these
+        public LayerMask dashableLayerE;        // dasher can dash east through these
         public int startingHp = 10;
-        private bool isFrozen = false;
+        protected bool isFrozen = false;
 
         private BoxCollider2D boxCollider;      //The BoxCollider2D component attached to this object.
-        private Rigidbody2D rb2D;               //The Rigidbody2D component attached to this object.
+        private Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
         private float inverseMoveTime;          //Used to make movement more efficient.
-        private bool isMoving;                  //Is the object currently moving.
+        protected bool isMoving;                //Is the object currently moving.
         private int hp;
         private SpriteRenderer spriteRend;
         private Material material;
@@ -41,12 +46,15 @@ namespace Completed
             material = GetComponent<SpriteRenderer>().material;
 
             child = transform.GetChild(0).gameObject;
+
         }
 
 
         //Move returns true if it is able to move and false if not. 
+        //If it is able, it will move the object
+        //(an object is able to move if it is not already moving and )
         //Move takes parameters for x direction, y direction and a RaycastHit2D to check collision.
-        protected bool Move(int xDir, int yDir, out RaycastHit2D hit)
+        protected virtual bool Move(int xDir, int yDir, out RaycastHit2D hit)
         {
             //Store start position to move from, based on objects current transform position.
             Vector2 start = transform.position;
@@ -57,8 +65,9 @@ namespace Completed
             //Disable the boxCollider so that linecast doesn't hit this object's own collider.
             //boxCollider.enabled = false;
 
-            //Cast a line from start point to end point checking collision on blockingLayer.
-            hit = Physics2D.Linecast(start, end, blockingLayer);
+            //Cast a line from start point to end point checking collision on blockingLayer and all the dashableLayers.
+            LayerMask layers = blockingLayer | dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+            hit = Physics2D.Linecast(start, end, layers);
 
             //Re-enable boxCollider after linecast
             //boxCollider.enabled = true;
@@ -78,7 +87,7 @@ namespace Completed
 
 
         //Co-routine for moving units from one space to next, takes a parameter end to specify where to move to.
-        protected IEnumerator SmoothMovement(Vector3 end)
+        protected virtual IEnumerator SmoothMovement(Vector3 end)
         {
             //The object is now moving.
             isMoving = true;
@@ -153,7 +162,7 @@ namespace Completed
 
         //The abstract modifier indicates that the thing being modified has a missing or incomplete implementation.
         //Ability will be overriden by functions in the inheriting classes.
-        protected abstract void Ability();
+        protected abstract void Ability(int horizontal, int vertical);
 
         /***
          * Everytime this function is called, the player will take the amount of damage in the dmg argument

@@ -57,10 +57,10 @@ namespace Completed
                         actionObjScript.Deactivate();
                     }
                     
-                } else
+                } /*else
                 {
                     Debug.Log("Error: caller obj not instanciated!");
-                }
+                }*/
             }
             if (isFrozen)
             {
