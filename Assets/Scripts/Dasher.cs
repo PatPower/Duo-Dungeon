@@ -22,11 +22,8 @@ namespace Completed
         }
 
 
-
         private void Update()
         {
-
-
             int horizontal = 0;     //Used to store the horizontal move direction.
             int vertical = 0;		//Used to store the vertical move direction.
             float joyStickHorizontal = 0;     //Used to store the horizontal move direction.
@@ -39,8 +36,8 @@ namespace Completed
             //Get input from the input manager, round it to an integer and store in vertical to set y axis move direction
             joyStickVertical = Input.GetAxisRaw(verticalControl);
 
-            // If 1, then action button is pressed
-            action = Input.GetButtonDown(actionControl);
+            // If 1, then action button is held
+            action = Input.GetButton(actionControl);
 
             if (joyStickHorizontal < -0.15)
             {
@@ -119,9 +116,15 @@ namespace Completed
             Vector2 end = start + new Vector2(xDir, yDir);
             LayerMask layer = isDashing ? blockingLayer : (LayerMask)(blockingLayer | dashableLayer);
             hit = Physics2D.Linecast(start, end, layer);
-            // TODO: check if 2 tiles contain dashableLayer
             if (hit.transform == null && !isMoving)
             {
+                // if dashing, check that there's nothing at the destination tile
+                if (isDashing && Physics2D.Linecast(end, end, dashableLayer).transform != null)  
+                {
+                    Debug.Log("dash cancelled");
+                    //isDashing = false;
+                    return false;
+                }
                 StartCoroutine(SmoothMovement(end));
                 return true;
             }
@@ -154,14 +157,28 @@ namespace Completed
 
         protected override void Ability(int horizontal, int vertical)
         {
-            Debug.Log("dashing?");
+            if (isFrozen)
+            {
+                Debug.Log("dash frozen");
+                return;
+            }
+            //Debug.Log("dashing?");
+            // don't dash if already dashing
+            RaycastHit2D dummy;
             if (!isDashing)
             {
+                Debug.Log("================================");
                 Debug.Log("dashing");
                 isDashing = true;
-                if (!base.AttemptMove<Wall>(horizontal*2, vertical*2))
+                
+                if (!Move(horizontal*2, vertical*2, out dummy))
                 {
-                    AttemptMove<Wall>(horizontal, vertical);
+                    Debug.Log("1 tile dash");
+                    if (!Move(horizontal, vertical, out dummy))
+                    {
+                        isDashing = false;
+                        Debug.Log("dash utterly failed");
+                    }
                 }
             }
         }

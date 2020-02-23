@@ -10,7 +10,7 @@ namespace Completed
         public LayerMask blockingLayer;         //Layer on which collision will be checked.
         public LayerMask dashableLayer;         //layer that the dasher can dash thru and no one else can
         public int startingHp = 10;
-        private bool isFrozen = false;
+        protected bool isFrozen = false;
 
         private BoxCollider2D boxCollider;      //The BoxCollider2D component attached to this object.
         protected Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
