@@ -129,7 +129,8 @@ namespace Completed
             if (hit.transform == null && !isMoving)
             {
                 // if dashing, fail the dash if there's something at the destination tile
-                if (isDashing && Physics2D.Linecast(end, end, dashableLayer).transform != null)  
+                layers = blockingLayer | dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+                if (isDashing && Physics2D.Linecast(end, end, layers).transform != null)  
                 {
                     return false;
                 }
