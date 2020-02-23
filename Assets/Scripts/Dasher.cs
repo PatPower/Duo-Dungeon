@@ -12,7 +12,7 @@ namespace Completed
         public string actionControl = "leftBumper";
         public float dashMoveTime;
         private float xInput, yInput, lastX, lastY;
-        private bool isDashing = false;
+        private bool isDashing = false;     // dasher is attempting to dash
 
         //Start overrides the Start function of MovingObject
         protected override void Start()
@@ -108,13 +108,12 @@ namespace Completed
             return false;
         }
 
-        //pretty much copied these entire methods over and made some tweaks, sorry
-        //could be cleaned up later if this becomes a big Thing
+        // code mostly copied from MovingObject
         protected override bool Move(int xDir, int yDir, out RaycastHit2D hit)
         {
             Vector2 start = transform.position;
             Vector2 end = start + new Vector2(xDir, yDir);
-            LayerMask layers = blockingLayer;
+            LayerMask layers = blockingLayer;   // layers that dasher will be blocked by
             if (isDashing)
             {
                 layers |= yDir > 0 ? (LayerMask) 0 : dashableLayerN;  // if going north
@@ -129,11 +128,9 @@ namespace Completed
             hit = Physics2D.Linecast(start, end, layers);
             if (hit.transform == null && !isMoving)
             {
-                // if dashing, check that there's nothing at the destination tile
+                // if dashing, fail the dash if there's something at the destination tile
                 if (isDashing && Physics2D.Linecast(end, end, dashableLayer).transform != null)  
                 {
-                    Debug.Log("dash cancelled");
-                    //isDashing = false;
                     return false;
                 }
                 StartCoroutine(SmoothMovement(end));
@@ -175,22 +172,20 @@ namespace Completed
                 return;
             }
             
-            RaycastHit2D dummy; // Move() needs it
+            RaycastHit2D dummy;
 
             // don't dash if already dashing
             if (!isDashing)
             {
-                //Debug.Log("================================");
-                //Debug.Log("dashing");
                 isDashing = true;
-                
+                // try to dash 2 tiles forward
+                // if can't dash 2 tiles forward, try dashing 1 tile forward
+                // if can't, the entire dash fails
                 if (!Move(horizontal*2, vertical*2, out dummy))
                 {
-                    //Debug.Log("1 tile dash");
                     if (!Move(horizontal, vertical, out dummy))
                     {
                         isDashing = false;
-                        //Debug.Log("dash utterly failed");
                     }
                 }
             }
