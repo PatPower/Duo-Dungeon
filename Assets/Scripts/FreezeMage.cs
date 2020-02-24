@@ -12,7 +12,7 @@ namespace Completed
         public string actionControl = "leftBumper";
         private float xInput, yInput, lastX, lastY;
         private List<string> arrayOfFreezableTags = new List<string> { "button", "spike", "Player" };
-        private List<GameObject> frozenObjects = new List<GameObject>();
+        private HashSet<GameObject> frozenObjects = new HashSet<GameObject>();
         private bool freezeAbilityOn = false;
         private bool needRefreeze = false;
 
@@ -230,6 +230,95 @@ namespace Completed
             }
         }
 
+        private void ReAbility()
+        {
+            // This gets a list of all the objects that has the Collider2D component attached to it (players, spikes, buttons, unpassible tiles, etc...)
+            HashSet<Collider2D> farObjects = new HashSet<Collider2D>(Physics2D.OverlapAreaAll(new Vector2(rigid.transform.position.x - 2, rigid.transform.position.y + 2), new Vector2(rigid.transform.position.x + 2, rigid.transform.position.y - 2)));
+            HashSet<Collider2D> nearObjects = new HashSet<Collider2D>(Physics2D.OverlapAreaAll(new Vector2(rigid.transform.position.x - 1, rigid.transform.position.y + 1), new Vector2(rigid.transform.position.x + 1, rigid.transform.position.y - 1)));
+
+            // Loops through all of the collidable objects around the time wizard
+            foreach (Collider2D col2d in farObjects)
+            {
+                // If the object is in the list of freezable objects that was defined near the top
+                if (arrayOfFreezableTags.Contains(col2d.tag))
+                {
+                    // Gets the game object
+                    GameObject gameObj = col2d.gameObject;
+
+                    // Based on the object location, we either freeze, unfreeze, or do nothing.
+                    if (nearObjects.Contains(col2d))
+                    {
+                        // Freeze if not yet frozen
+                        // Unfreeze if frozen
+                        if (!frozenObjects.Contains(gameObj))
+                        {
+                            // Adds the game object to the current list of frozen game objects that the player froze
+                            frozenObjects.Add(gameObj);
+
+                            ActionObject actionObjScript;
+                            // Checks which object is being frozen by checking the tag
+                            switch (col2d.tag)
+                            {
+                                case "spike":
+                                    Debug.Log("froze spike");
+
+                                    actionObjScript = gameObj.GetComponent<ActionObject>();
+                                    actionObjScript.freezeObj(true);
+                                    break;
+                                case "button":
+                                    Debug.Log("froze button");
+                                    actionObjScript = gameObj.GetComponent<ActionObject>();
+                                    actionObjScript.freezeObj(true);
+                                    break;
+                                case "Player":
+                                    // If its not the freeze mage
+                                    if (gameObj != this.gameObject)
+                                    {
+                                        MovingObject movingObjScript = gameObj.GetComponent<MovingObject>();
+                                        movingObjScript.freeze();
+                                    }
+                                    else
+                                    {
+                                        // Remove freeze mage from frozen objects
+                                        frozenObjects.Remove(gameObj);
+                                    }
+                                    // Freeze movement
+                                    break;
+                            }
+                        }
+                    } else
+                    {
+                        // Unfreeze if frozen
+                        if (frozenObjects.Contains(gameObj))
+                        {
+                            frozenObjects.Remove(gameObj);
+
+                            ActionObject actionObjScript;
+                            // Checks which object is being unfrozen
+                            switch (gameObj.tag)
+                            {
+                                case "spike":
+                                    Debug.Log("unfroze spike");
+                                    actionObjScript = gameObj.GetComponent<ActionObject>();
+                                    actionObjScript.freezeObj(false);
+                                    break;
+                                case "button":
+                                    Debug.Log("unfroze button");
+                                    actionObjScript = gameObj.GetComponent<ActionObject>();
+                                    actionObjScript.freezeObj(false);
+                                    break;
+                                case "Player":
+                                    // unfreeze movement
+                                    MovingObject movingObjScript = gameObj.GetComponent<MovingObject>();
+                                    movingObjScript.unFreeze();
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         //Co-routine for moving units from one space to next, takes a parameter end to specify where to move to.
         protected override IEnumerator SmoothMovement(Vector3 end)
         {
@@ -259,9 +348,11 @@ namespace Completed
             //Make sure the object is exactly at the end of its movement.
             rb2D.MovePosition(end);
 
-            // Refreeze objects
-            Ability();
-            Ability();
+            // Refreeze objects if necessary
+            if (freezeAbilityOn)
+            {
+                ReAbility();
+            }
 
             //The object is no longer moving.
             isMoving = false;
