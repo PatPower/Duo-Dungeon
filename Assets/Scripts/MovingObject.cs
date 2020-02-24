@@ -17,11 +17,11 @@ namespace Completed
         protected bool isFrozen = false;
 
         private BoxCollider2D boxCollider;      //The BoxCollider2D component attached to this object.
-        private Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
-        private float inverseMoveTime;          //Used to make movement more efficient.
+        protected Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
+        protected float inverseMoveTime;          //Used to make movement more efficient.
         protected bool isMoving;                //Is the object currently moving.
         private int hp;
-        private SpriteRenderer spriteRend;
+        protected SpriteRenderer spriteRend;
         private Material material;
         private const string SHADER_COLOR_NAME = "_Color";
         GameObject child;
