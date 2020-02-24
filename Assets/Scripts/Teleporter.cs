@@ -14,8 +14,8 @@ namespace Completed
         public string horizontalControl = "P2RightHorizontal";
         public string verticalControl = "P2RightVertical";
         public string actionControl = "leftBumper";
-        private float xInput, yInput, lastX, lastY;
-
+        private float lastX, lastY;
+        public GameObject childSquare; // Teleporter square
         //Start overrides the Start function of MovingObject
         protected override void Start()
         {
@@ -23,6 +23,8 @@ namespace Completed
             // Keep track of where we've been.
             pastX = new float[] { rigid.position.x, rigid.position.x, rigid.position.x, rigid.position.x, rigid.position.x };
             pastY = new float[] { rigid.position.y, rigid.position.y, rigid.position.y, rigid.position.y, rigid.position.y };
+            childSquare.transform.position = new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]);
+
             base.Start();
         }
 
@@ -97,6 +99,8 @@ namespace Completed
             {
                 Ability();
             }
+
+
         }
 
         //AttemptMove overrides the AttemptMove function in the base class MovingObject
@@ -108,7 +112,7 @@ namespace Completed
             //Call the AttemptMove method of the base class, passing in the component T (in this case Wall) and x and y direction to move.
             if (!base.AttemptMove<T>(xDir, yDir))
             {
-                return true;
+                return false;
             } else
             {
                 // Mark the square when they are stablelized
@@ -117,17 +121,18 @@ namespace Completed
                     // Make sure they have actually moved
                     if (rigid.position.x != pastX[mod(spacesMoved - 1, pastX.Length)] || rigid.position.y != pastY[mod(spacesMoved - 1, pastY.Length)])
                     {
-                        Debug.Log("SAVE");
                         pastX[mod(spacesMoved, pastX.Length)] = rigid.position.x;
                         pastY[mod(spacesMoved, pastY.Length)] = rigid.position.y;
                         ++spacesMoved;
                     }
+                    childSquare.transform.position = new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]);
+                    Debug.Log(new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]));
                 }
             }
 
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
             GameManager.instance.playersTurn = false;
-            return false;
+            return true;
         }
         //Ignore the function
         protected override void OnCantMove<T>(T component)
