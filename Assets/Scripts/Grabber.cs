@@ -198,7 +198,7 @@ namespace Completed
             } else if (!isMoving)
             {
                 start = transform.position;
-                layers = blockingLayer | dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+                layers = blockingLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
                 hit = Physics2D.Linecast(start, end, layers);
                 if (hit.transform)
                 {
