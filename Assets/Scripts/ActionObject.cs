@@ -43,18 +43,37 @@ namespace Completed
                 spriteRend.color = Color.white;
                 if (callerObj != null)
                 {
-                    ActionObject actionObjScript = callerObj.GetComponent<ActionObject>();
-                    // if caller is active
-                    Debug.Log(callerObj);
-                    Debug.Log(actionObjScript.status());
-                    if (actionObjScript.status())
+                    NodeController nodeScript = callerObj.GetComponent<NodeController>() as NodeController;
+                    ActionObject actionObjScript = callerObj.GetComponent<ActionObject>() as ActionObject;
+                    if (nodeScript != null)
                     {
-                        // From the caller's script, call the activate function with the caller as the caller argument
-                        actionObjScript.Activate(callerObj);
-                    } else
+                        // if caller is active
+                        if (nodeScript.IsActive())
+                        {
+                            // From the caller's script, call the activate function with the caller as the caller argument
+                            nodeScript.TryActivate();
+                        }
+                        else
+                        {
+                            // From the caller's script, call the deactivate function
+                            nodeScript.TryDeactivate();
+                        }
+                    } else if (actionObjScript != null)
                     {
-                        // From the caller's script, call the deactivate function
-                        actionObjScript.Deactivate();
+
+                        // if caller is active
+                        Debug.Log(callerObj);
+                        Debug.Log(actionObjScript.status());
+                        if (actionObjScript.status())
+                        {
+                            // From the caller's script, call the activate function with the caller as the caller argument
+                            actionObjScript.Activate(callerObj);
+                        }
+                        else
+                        {
+                            // From the caller's script, call the deactivate function
+                            actionObjScript.Deactivate();
+                        }
                     }
                     
                 } /*else
