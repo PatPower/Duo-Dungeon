@@ -23,8 +23,17 @@ namespace Completed
             {
                 return;
             }
-            ActionObject actionObjScript = actionObj.GetComponent<ActionObject>();
-            actionObjScript.Activate(this.gameObject);
+
+            NodeController nodeScript = actionObj.GetComponent<NodeController>() as NodeController;
+            ActionObject actionObjScript = actionObj.GetComponent<ActionObject>() as ActionObject;
+            if (nodeScript != null)
+            {
+                nodeScript.TryActivate();
+            }
+            else if (actionObjScript != null)
+            {
+                actionObjScript.Activate(this.gameObject);
+            }
             spriteRend.sprite = pressed;
         }
 
@@ -34,22 +43,31 @@ namespace Completed
             {
                 return;
             }
-            ActionObject actionObjScript = actionObj.GetComponent<ActionObject>();
-            actionObjScript.Deactivate();
+
+            NodeController nodeScript = actionObj.GetComponent<NodeController>() as NodeController;
+            ActionObject actionObjScript = actionObj.GetComponent<ActionObject>() as ActionObject;
+            if (nodeScript != null)
+            {
+                nodeScript.TryDeactivate();
+            }
+            else if (actionObjScript != null)
+            {
+                actionObjScript.Deactivate();
+            }
             spriteRend.sprite = defaultSprite;
             
         }
 
         private void OnTriggerEnter2D(Collider2D collision)
         {
-            Activate(this.gameObject);
             isActive = true;
+            Activate(this.gameObject);
         }
 
         private void OnTriggerExit2D(Collider2D collision)
         {
-            Deactivate();
             isActive = false;
+            Deactivate();
         }
     }
 }
