@@ -14,6 +14,7 @@ namespace Completed
         private List<string> arrayOfFreezableTags = new List<string> { "button", "spike", "Player" };
         private List<GameObject> frozenObjects = new List<GameObject>();
         private bool freezeAbilityOn = false;
+        private bool needRefreeze = false;
 
         //Start overrides the Start function of MovingObject
         protected override void Start()
@@ -90,6 +91,19 @@ namespace Completed
                 //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
                 AttemptMove<Wall>(horizontal, vertical);
             }
+
+            // If refreeze required
+            if (needRefreeze && freezeAbilityOn)
+            {
+                needRefreeze = false;
+
+                // Do this only when they are stablelized
+                if (rigid.position.x == Mathf.Floor(rigid.position.x) && rigid.position.y == Mathf.Floor(rigid.position.y))
+                {
+
+                }
+            }
+
             // Checks if the action button is pressed
             if (action)
             {
@@ -107,6 +121,10 @@ namespace Completed
             if (!base.AttemptMove<T>(xDir, yDir))
             {
                 return true;
+            } else
+            {
+                // Refreeze required
+                needRefreeze = true;
             }
 
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
@@ -167,14 +185,7 @@ namespace Completed
                         }
                     }
                 }
-                // If anything got frozen
-                if (frozenObjects.Count > 0)
-                {
-                    freezeAbilityOn = true;
-                } else
-                {
-                    // error sound
-                }
+                freezeAbilityOn = true;
             }
             else // Handles the unfreezing of objects
             {
@@ -207,6 +218,43 @@ namespace Completed
                 // Clears the list of frozen objects
                 frozenObjects.Clear();
             }
+        }
+
+        //Co-routine for moving units from one space to next, takes a parameter end to specify where to move to.
+        protected override IEnumerator SmoothMovement(Vector3 end)
+        {
+            //The object is now moving.
+            isMoving = true;
+
+            //Calculate the remaining distance to move based on the square magnitude of the difference between current position and end parameter. 
+            //Square magnitude is used instead of magnitude because it's computationally cheaper.
+            float sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+
+            //While that distance is greater than a very small amount (Epsilon, almost zero):
+            while (sqrRemainingDistance > float.Epsilon)
+            {
+                //Find a new position proportionally closer to the end, based on the moveTime
+                Vector3 newPostion = Vector3.MoveTowards(rb2D.position, end, inverseMoveTime * Time.deltaTime);
+
+                //Call MovePosition on attached Rigidbody2D and move it to the calculated position.
+                rb2D.MovePosition(newPostion);
+
+                //Recalculate the remaining distance after moving.
+                sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+
+                //Return and loop until sqrRemainingDistance is close enough to zero to end the function
+                yield return null;
+            }
+
+            //Make sure the object is exactly at the end of its movement.
+            rb2D.MovePosition(end);
+
+            // Refreeze objects
+            Ability();
+            Ability();
+
+            //The object is no longer moving.
+            isMoving = false;
         }
     }
 }
