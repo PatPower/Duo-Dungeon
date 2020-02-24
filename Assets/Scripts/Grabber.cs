@@ -137,6 +137,10 @@ namespace Completed
 
         protected override void Ability(int horizontal = 0, int vertical = 0)
         {
+            if (isFrozen)
+            {
+                return;
+            }
             Vector2 start = transform.position;
             Vector2 end = start;
             // Checks the last direction faced

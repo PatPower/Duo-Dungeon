@@ -20,11 +20,12 @@ namespace Completed
         protected Rigidbody2D rb2D;             //The Rigidbody2D component attached to this object.
         protected float inverseMoveTime;          //Used to make movement more efficient.
         protected bool isMoving;                //Is the object currently moving.
+        protected bool isDead = false;
+
         private int hp;
         protected SpriteRenderer spriteRend;
         private Material material;
         private const string SHADER_COLOR_NAME = "_Color";
-        GameObject child;
 
         //Protected, virtual functions can be overridden by inheriting classes.
         protected virtual void Start()
@@ -45,7 +46,6 @@ namespace Completed
             // makes a new instance of the material for runtime changes
             material = GetComponent<SpriteRenderer>().material;
 
-            child = transform.GetChild(0).gameObject;
 
         }
 
@@ -127,7 +127,7 @@ namespace Completed
             where T : Component
         {
             // If player is frozen, then stop movement
-            if (isFrozen)
+            if (isFrozen || isDead)
             {
                 return false;
             }
@@ -172,14 +172,12 @@ namespace Completed
             
             if ((hp - dmg) <= 0)
             {
-                Destroy(this.gameObject);
+                die();
                 hp = 0;
             } else
             {
                 StartCoroutine(Flash(0.1f));
                 hp -= dmg;
-                HealthBar childScript = child.GetComponent<HealthBar>();
-                childScript.updateHPBar((float) hp / (float) startingHp);
             }
             Debug.Log("HP LEFT: " + hp);
         }
@@ -207,6 +205,28 @@ namespace Completed
         {
             isFrozen = false;
             spriteRend.color = Color.white;
+        }
+
+        public virtual void die()
+        {
+            Debug.Log("Dead");
+            spriteRend.enabled = false;
+            isDead = true;
+            isFrozen = true;
+        }
+
+        public void respawn(Vector2 spawnLoc)
+        {
+            spriteRend.enabled = true;
+
+            isDead = false;
+            isFrozen = false;
+            rb2D.transform.position = spawnLoc;
+        }
+
+        public bool checkIfDead()
+        {
+            return isDead;
         }
     }
 }

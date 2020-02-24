@@ -141,6 +141,10 @@ namespace Completed
 
         protected override void Ability(int horizontal = 0, int vertical = 0)
         {
+            if (isFrozen)
+            {
+                return;
+            }
             rigid.MovePosition(new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]));
 
             // Save location
@@ -164,6 +168,12 @@ namespace Completed
         private int mod(float a, float b)
         {
             return (int)(a - b * Mathf.Floor(a / b));
+        }
+
+        public override void die()
+        {
+            Debug.Log("Teleporter");
+            base.die();
         }
     }
 }
