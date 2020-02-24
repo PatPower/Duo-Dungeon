@@ -11,7 +11,7 @@ namespace Completed
         public string verticalControl = "P1RightVertical";
         public string actionControl = "leftBumper";
         public float dashMoveTime = 0.3f;
-        private float xInput, yInput, lastX, lastY;
+        private float lastX, lastY;
         private bool isDashing = false;     // dasher is attempting to dash
 
         //Start overrides the Start function of MovingObject

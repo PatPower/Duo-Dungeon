@@ -10,7 +10,12 @@ namespace Completed
         public string horizontalControl = "P1RightHorizontal";
         public string verticalControl = "P1RightVertical";
         public string actionControl = "leftBumper";
-        private float xInput, yInput, lastX, lastY;
+        public int maxGrabLength = 5;
+        public float dashMoveTime = 0.2f;
+        private float lastX, lastY;
+        public LayerMask ringLayer;         //Layer with the grabbable rings.
+        public LayerMask playerLayer;         //Layer with the players rings.
+
 
         //Start overrides the Start function of MovingObject
         protected override void Start()
@@ -43,25 +48,30 @@ namespace Completed
             if (joyStickHorizontal < -0.15)
             {
                 horizontal = -1;
+                lastX = -1;
             }
             else if (joyStickHorizontal > 0.15)
             {
                 horizontal = 1;
+                lastX = 1;
             }
 
             if (joyStickVertical < -0.15)
             {
                 vertical = -1;
+                lastY = -1;
             }
             else if (joyStickVertical > 0.15)
             {
                 vertical = 1;
+                lastY = 1;
             }
 
             //Check if moving horizontally, if so set vertical to zero.
             if (horizontal != 0)
             {
                 vertical = 0;
+                lastY = 0;
             }
 
             //Check if we have a non-zero value for horizontal or vertical
@@ -73,18 +83,29 @@ namespace Completed
                     if (joyStickHorizontal > joyStickVertical)
                     {
                         vertical = 0;
+                        lastY = 0;
                     }
                     else
                     {
                         horizontal = 0;
+                        lastX = 0;
                     }
+                } else if (horizontal != 0)
+                {
+                    vertical = 0;
+                    lastY = 0;
+                }
+                else if (vertical != 0)
+                {
+                    horizontal = 0;
+                    lastX = 0;
                 }
 
                 //Call AttemptMove passing in the generic parameter Wall, since that is what Player may interact with if they encounter one (by attacking it)
                 //Pass in horizontal and vertical as parameters to specify the direction to move Player in.
+
                 AttemptMove<Wall>(horizontal, vertical);
             }
-
             if (action)
             {
                 Ability();
@@ -102,21 +123,11 @@ namespace Completed
             {
                 return true;
             }
-
-            //Hit allows us to reference the result of the Linecast done in Move.
-            RaycastHit2D hit;
-
-            //If Move returns true, meaning Player was able to move into an empty space.
-            if (Move(xDir, yDir, out hit))
-            {
-
-            }
-
-
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
             GameManager.instance.playersTurn = false;
             return false;
         }
+
         //OnCantMove overrides the abstract function OnCantMove in MovingObject.
         //It takes a generic parameter T which in the case of Player is a Wall which the player can attack and destroy.
         protected override void OnCantMove<T>(T component)
@@ -126,7 +137,116 @@ namespace Completed
 
         protected override void Ability(int horizontal = 0, int vertical = 0)
         {
+            Vector2 start = transform.position;
+            Vector2 end = start;
+            // Checks the last direction faced
+            if (lastX == -1) // Left
+            {
+                start += new Vector2(-1, 0);
+                end = start + new Vector2(-maxGrabLength - 1, 0);
+            } else if (lastX == 1) // right
+            {
+                start += new Vector2(1, 0);
+                end = start + new Vector2(maxGrabLength - 1, 0);
+            } else if (lastY == -1) // Down
+            {
+                start += new Vector2(0, -1);
+                end = start + new Vector2(0, -maxGrabLength - 1);
+            } else // Up (Default)
+            {
+                start += new Vector2(0, 1);
+                end = start + new Vector2(0, maxGrabLength - 1);
+            }
+            LayerMask layers = ringLayer;
+            layers |= playerLayer;
+            RaycastHit2D hit = Physics2D.Linecast(start, end, layers);
+            GameObject child = transform.GetChild(1).gameObject;
+            Rope ropeScript = child.GetComponent<Rope>();
+            if (hit.transform != null && !isMoving) // If a ring is hit
+            {
+                if (hit.transform.gameObject.layer == Mathf.RoundToInt(Mathf.Log(ringLayer.value, 2)))
+                {
+                    
+                    Vector2 endLocation = hit.transform.gameObject.transform.position;
+                    // Checks the last direction faced
+                    if (lastX == -1) // Left
+                    {
+                        endLocation += new Vector2(1, 0);
+                    }
+                    else if (lastX == 1) // right
+                    {
+                        endLocation += new Vector2(-1, 0);
+                    }
+                    else if (lastY == -1) // Down
+                    {
+                        endLocation += new Vector2(0, 1);
+                    }
+                    else // Up (Default)
+                    {
+                        endLocation += new Vector2(0, -1);
 
+                    }
+                    
+                    
+                    
+                    StartCoroutine(SmoothGrappleMovement(endLocation, ropeScript, hit.transform.gameObject.transform.position));
+                } else if (hit.transform.gameObject.layer == Mathf.RoundToInt(Mathf.Log(playerLayer.value, 2)))
+                {
+                    Debug.Log("plauer");
+
+                }
+            } else if (!isMoving)
+            {
+                start = transform.position;
+                layers = blockingLayer | dashableLayer | dashableLayerN | dashableLayerS | dashableLayerW | dashableLayerE;
+                hit = Physics2D.Linecast(start, end, layers);
+                if (hit.transform)
+                {
+                    StartCoroutine(SmoothGrapple(ropeScript, hit.point));
+                }
+                else
+                {
+                    StartCoroutine(SmoothGrapple(ropeScript, end));
+                }
+            }
+        }
+
+        private IEnumerator SmoothGrapple(Rope ropeScript, Vector3 realEnd)
+        {
+            isMoving = true;
+            float invMoveT = 1f / dashMoveTime;  // use different speed for dashing
+            float sqrRemainingDistance = (transform.position - realEnd).sqrMagnitude;
+            while (sqrRemainingDistance > float.Epsilon)
+            {
+                ropeScript.updateRope(transform.position, realEnd);
+                Vector3 newPostion = Vector3.MoveTowards(realEnd, rigid.position, invMoveT * Time.deltaTime);
+                realEnd = newPostion;
+                sqrRemainingDistance = (transform.position - realEnd).sqrMagnitude;
+                yield return null;
+            }
+            ropeScript.updateRope(transform.position, transform.position);
+            isMoving = false;
+        }
+
+        // code mostly copied from MovingObject
+        private IEnumerator SmoothGrappleMovement(Vector3 end, Rope ropeScript, Vector2 realEnd)
+        {
+            isMoving = true;
+            Debug.Log(end);
+            float invMoveT = 1f / dashMoveTime;  // use different speed for dashing
+            float sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+            while (sqrRemainingDistance > float.Epsilon)
+            {
+                ropeScript.updateRope(transform.position, realEnd);
+                Vector3 newPostion = Vector3.MoveTowards(rigid.position, end, invMoveT * Time.deltaTime);
+                rigid.MovePosition(newPostion);
+                sqrRemainingDistance = (transform.position - end).sqrMagnitude;
+                yield return null;
+            }
+            ropeScript.updateRope(transform.position, transform.position);
+
+            rigid.MovePosition(end);
+            isMoving = false;
         }
     }
 }

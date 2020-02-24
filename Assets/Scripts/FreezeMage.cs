@@ -10,7 +10,7 @@ namespace Completed
         public string horizontalControl = "P1RightHorizontal";
         public string verticalControl = "P1RightVertical";
         public string actionControl = "leftBumper";
-        private float xInput, yInput, lastX, lastY;
+        private float lastX, lastY;
         private List<string> arrayOfFreezableTags = new List<string> { "button", "spike", "Player" };
         private List<GameObject> frozenObjects = new List<GameObject>();
         private bool freezeAbilityOn = false;
@@ -108,16 +108,6 @@ namespace Completed
             {
                 return true;
             }
-
-            //Hit allows us to reference the result of the Linecast done in Move.
-            RaycastHit2D hit;
-
-            //If Move returns true, meaning Player was able to move into an empty space.
-            if (Move(xDir, yDir, out hit))
-            {
-
-            }
-
 
             //Set the playersTurn boolean of GameManager to false now that players turn is over.
             GameManager.instance.playersTurn = false;
