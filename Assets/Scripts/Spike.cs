@@ -10,7 +10,7 @@ namespace Completed
         public Sprite pressed;
         public int damage = 10;
         private Sprite defaultSprite;
-        private bool spikeUp = false;
+        public bool spikeUp = false;
 
 
 

@@ -20,6 +20,8 @@ namespace Completed
         //Start overrides the Start function of MovingObject
         protected override void Start()
         {
+            Debug.Log("H");
+
             rigid = GetComponent<Rigidbody2D>();
             base.Start();
         }
@@ -28,8 +30,6 @@ namespace Completed
 
         private void Update()
         {
-
-
             int horizontal = 0;     //Used to store the horizontal move direction.
             int vertical = 0;		//Used to store the vertical move direction.
             float joyStickHorizontal = 0;     //Used to store the horizontal move direction.

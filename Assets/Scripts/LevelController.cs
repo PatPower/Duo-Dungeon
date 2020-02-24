@@ -29,7 +29,6 @@ namespace Completed {
             }
             if (char2.checkIfDead())
             {
-                Debug.Log("DASHER DEAD");
                     char2.respawn(respawnPad.transform.position);
             }
             if (char3.checkIfDead())
