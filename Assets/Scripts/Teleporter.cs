@@ -126,7 +126,6 @@ namespace Completed
                         ++spacesMoved;
                     }
                     childSquare.transform.position = new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]);
-                    Debug.Log(new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]));
                 }
             }
 
@@ -143,10 +142,13 @@ namespace Completed
         protected override void Ability(int horizontal = 0, int vertical = 0)
         {
             rigid.MovePosition(new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]));
+
             // Save location
             pastX[mod(spacesMoved, pastX.Length)] = rigid.position.x;
             pastY[mod(spacesMoved, pastY.Length)] = rigid.position.y;
             ++spacesMoved;
+            childSquare.transform.position = new Vector2(pastX[mod(spacesMoved, pastX.Length)], pastY[mod(spacesMoved, pastY.Length)]);
+
             StartCoroutine(TeleportBlink());
         }
 
