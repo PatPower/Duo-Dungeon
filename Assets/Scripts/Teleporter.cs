@@ -159,9 +159,11 @@ namespace Completed
         IEnumerator TeleportBlink()
         {
             spriteRend.enabled = false;
+            childSquare.GetComponent<SpriteRenderer>().enabled = false;
             // wait half a second
             yield return new WaitForSeconds(0.5f);
             spriteRend.enabled = true;
+            childSquare.GetComponent<SpriteRenderer>().enabled = true;
         }
 
         // Modulo with always positive numbers

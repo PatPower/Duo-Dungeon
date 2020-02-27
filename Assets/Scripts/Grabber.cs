@@ -164,7 +164,7 @@ namespace Completed
             LayerMask layers = ringLayer;
             layers |= playerLayer;
             RaycastHit2D hit = Physics2D.Linecast(start, end, layers);
-            GameObject child = transform.GetChild(1).gameObject;
+            GameObject child = transform.GetChild(0).gameObject;
             Rope ropeScript = child.GetComponent<Rope>();
             if (hit.transform != null && !isMoving) // If a ring is hit
             {

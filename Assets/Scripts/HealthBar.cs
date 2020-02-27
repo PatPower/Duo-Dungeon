@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+// NOT IN USE ANYMORE
 public class HealthBar : MonoBehaviour
 {
     Vector3 localScale;
